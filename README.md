@@ -158,7 +158,15 @@ data: 本次增量文本
 
 ## 部署说明
 
-可以部署到 Vercel、Netlify 或其他静态托管平台。
+项目已配置 GitHub Pages 自动部署。推送到 `main` 分支后，GitHub Actions 会自动构建并发布 `dist` 目录。
+
+部署完成后的访问地址：
+
+```text
+https://waou121.github.io/ai-knowledge-frontend/
+```
+
+也可以部署到 Vercel、Netlify 或其他静态托管平台。
 
 构建命令：
 
