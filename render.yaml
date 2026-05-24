@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ai-knowledge-rag-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server/llm-proxy.mjs
+    envVars:
+      - key: LLM_BASE_URL
+        value: https://api.deepseek.com
+      - key: LLM_MODEL
+        value: deepseek-chat
+      - key: LLM_API_KEY
+        sync: false

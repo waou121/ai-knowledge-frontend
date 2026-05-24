@@ -274,3 +274,38 @@ http://127.0.0.1:8787/api/rag/status
 - `server/rag-index.json` 已加入 `.gitignore`，不会上传到 GitHub，避免公开论文内容。
 - GitHub Pages 只能部署静态前端，不能直接运行本地 RAG 后端。给项目组使用时，需要在实验室电脑、内网服务器或云服务器上运行 `npm run server`。
 - 当前 RAG 检索是轻量关键词召回，适合演示和小型知识库。后续可以升级为 Embedding + 向量数据库 + rerank，以获得更稳定的语义检索效果。
+
+## 在线问答部署
+
+GitHub Pages 只能托管前端静态文件。要让在线链接也能问答，需要再部署一个 Node.js 后端服务，用来保存 DeepSeek API Key、调用模型并提供 RAG 检索接口。
+
+推荐结构：
+
+```text
+GitHub Pages 前端
+  -> VITE_API_BASE_URL=https://你的后端域名/api
+  -> Node.js 后端
+  -> DeepSeek API
+```
+
+后端可部署到 Render、Railway、Fly.io、Vercel Serverless 或实验室服务器。项目已包含 `render.yaml`，可以直接在 Render 创建 Web Service：
+
+```text
+Build Command: npm install
+Start Command: node server/llm-proxy.mjs
+Environment:
+  LLM_API_KEY=你的 DeepSeek API Key
+  LLM_BASE_URL=https://api.deepseek.com
+  LLM_MODEL=deepseek-chat
+```
+
+线上没有本地 `server/rag-index.json` 时，后端会自动加载 `server/rag-index.demo.json` 作为公开演示索引。完整论文 RAG 仍建议只在本地或内网服务器运行，避免公开论文原文和内部资料。
+
+部署好后端后，在 GitHub 仓库的 Actions/Pages 构建环境中设置：
+
+```text
+VITE_USE_MOCK=false
+VITE_API_BASE_URL=https://你的后端域名/api
+```
+
+重新触发 GitHub Pages 部署后，在线页面就可以调用线上后端进行问答。

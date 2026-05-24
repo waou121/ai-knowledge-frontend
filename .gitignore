@@ -11,4 +11,5 @@ vite-dev*.log
 llm-proxy*.log
 *.local
 server/rag-index*.json
+!server/rag-index.demo.json
 rag-index*.json

@@ -14,24 +14,28 @@ if (existsSync(envPath)) {
   }
 }
 
-const port = Number(process.env.LLM_PROXY_PORT || 8787);
+const port = Number(process.env.PORT || process.env.LLM_PROXY_PORT || 8787);
 const apiKey = process.env.LLM_API_KEY || "";
 const baseUrl = (process.env.LLM_BASE_URL || "https://api.deepseek.com").replace(/\/$/, "");
 const model = process.env.LLM_MODEL || "deepseek-chat";
 const ragIndexPath = new URL("./rag-index.json", import.meta.url);
+const demoRagIndexPath = new URL("./rag-index.demo.json", import.meta.url);
+const activeRagIndexPath = existsSync(ragIndexPath) ? ragIndexPath : demoRagIndexPath;
 
 let ragChunks = [];
+let ragIndexName = "none";
 let ragRetrieval = {
   embeddingModel: "keyword-only",
   embeddingDim: 384,
   vectorSearch: "none",
   rerank: "keyword-score",
 };
-if (existsSync(ragIndexPath)) {
+if (existsSync(activeRagIndexPath)) {
   try {
-    const ragPayload = JSON.parse(readFileSync(ragIndexPath, "utf-8"));
+    const ragPayload = JSON.parse(readFileSync(activeRagIndexPath, "utf-8"));
     ragChunks = Array.isArray(ragPayload.chunks) ? ragPayload.chunks : [];
     ragRetrieval = { ...ragRetrieval, ...(ragPayload.retrieval || {}) };
+    ragIndexName = activeRagIndexPath.pathname.endsWith("rag-index.demo.json") ? "demo" : "local";
   } catch (error) {
     console.warn(`Failed to load local RAG index: ${error instanceof Error ? error.message : error}`);
   }
@@ -461,6 +465,7 @@ const server = http.createServer(async (req, res) => {
       const sourceNames = [...new Set(ragChunks.map((chunk) => chunk.source).filter(Boolean))];
       sendJson(res, {
         enabled: ragChunks.length > 0,
+        index: ragIndexName,
         chunkCount: ragChunks.length,
         sourceCount: sourceNames.length,
         sources: sourceNames.slice(0, 12),
