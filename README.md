@@ -309,3 +309,18 @@ VITE_API_BASE_URL=https://你的后端域名/api
 ```
 
 重新触发 GitHub Pages 部署后，在线页面就可以调用线上后端进行问答。
+
+GitHub 仓库变量设置位置：
+
+```text
+Repository -> Settings -> Secrets and variables -> Actions -> Variables -> New repository variable
+```
+
+需要新增两个变量：
+
+```text
+VITE_USE_MOCK=false
+VITE_API_BASE_URL=https://你的后端域名/api
+```
+
+注意：`VITE_API_BASE_URL` 不是密钥，可以放 Variables；`LLM_API_KEY` 是密钥，只能放后端平台的 Environment Variables，不能放到 GitHub Pages 前端构建变量里。
