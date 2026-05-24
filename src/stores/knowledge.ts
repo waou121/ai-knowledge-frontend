@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { askQuestionApi, fetchLibrariesApi, loginApi, parseDocumentApi, uploadDocumentApi } from "../api/knowledge";
 import { streamChatAnswer } from "../api/sse";
-import { initialConversations, initialLibraries, references as initialReferences } from "../mockData";
+import { initialLibraries, references as initialReferences } from "../mockData";
 import type { Conversation, DocumentItem, KnowledgeLibrary, LoginPayload, ReferenceItem } from "../types";
 
 const loginKey = "knowledge_ai_logged_in";
@@ -15,19 +15,22 @@ function cloneLibraries(): KnowledgeLibrary[] {
   }));
 }
 
-function cloneConversations(): Conversation[] {
-  return initialConversations.map((conversation) => ({
-    ...conversation,
-    messages: conversation.messages.map((message) => ({ ...message })),
-  }));
+function createDefaultConversation(libraryId: string): Conversation {
+  return {
+    id: "c-default",
+    title: "新的问答会话",
+    libraryId,
+    updatedAt: "刚刚",
+    messages: [{ role: "assistant", content: "已连接当前知识库，可以开始提问。" }],
+  };
 }
 
 export const useKnowledgeStore = defineStore("knowledge", () => {
   const loggedIn = ref(localStorage.getItem(loginKey) === "1");
   const username = ref(localStorage.getItem("knowledge_ai_username") || "gaojunchi");
   const libraries = ref<KnowledgeLibrary[]>(cloneLibraries());
-  const conversations = ref<Conversation[]>(cloneConversations());
   const activeLibraryId = ref(libraries.value[0].id);
+  const conversations = ref<Conversation[]>([createDefaultConversation(activeLibraryId.value)]);
   const activeConversationId = ref(conversations.value[0].id);
   const uploadHint = ref("拖拽或点击上传");
   const lastQuestion = ref("");

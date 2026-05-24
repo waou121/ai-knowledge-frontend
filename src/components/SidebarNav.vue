@@ -17,7 +17,7 @@
     </nav>
 
     <div class="sidebar-section">
-      <div class="section-title">历史会话</div>
+      <div class="section-title">当前会话</div>
       <div class="conversation-list">
         <button
           v-for="conversation in store.conversations"
