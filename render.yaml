@@ -9,5 +9,7 @@ services:
         value: https://api.deepseek.com
       - key: LLM_MODEL
         value: deepseek-chat
+      - key: RAG_DATA_DIR
+        value: /var/data
       - key: LLM_API_KEY
         sync: false

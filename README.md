@@ -324,3 +324,38 @@ VITE_API_BASE_URL=https://你的后端域名/api
 ```
 
 注意：`VITE_API_BASE_URL` 不是密钥，可以放 Variables；`LLM_API_KEY` 是密钥，只能放后端平台的 Environment Variables，不能放到 GitHub Pages 前端构建变量里。
+
+## 长期保存上传 PDF
+
+在线上传的 PDF 可以进入 RAG 知识库。后端会解析上传的 PDF / Markdown / TXT，切分文本、生成本地 Hash Embedding，并追加到运行中的向量索引。为了重启后仍然保留上传内容，后端会把上传文档和 RAG chunk 保存到：
+
+```text
+server/data/uploaded-rag.json
+```
+
+本地运行时这个文件会保存在项目目录下，并已加入 `.gitignore`，不会上传 GitHub。
+
+Render 免费实例默认文件系统可能随重启或重新部署丢失。若需要线上长期保存，需要在 Render 服务中添加 Persistent Disk：
+
+```text
+Render -> ai-knowledge-rag-api -> Disks -> Add Disk
+Mount Path: /var/data
+Size: 按需要选择
+```
+
+同时在 Render Environment Variables 中设置：
+
+```text
+RAG_DATA_DIR=/var/data
+```
+
+这样上传后的 RAG 索引会写入：
+
+```text
+/var/data/uploaded-rag.json
+```
+
+注意：
+
+- 上传 PDF 会参与后续问答检索，但扫描版或图片型 PDF 需要 OCR 才能抽取文字。
+- 当前文件型索引适合小型知识库和项目展示；如果项目组长期多人使用，建议升级到 PostgreSQL / SQLite + 对象存储 + 向量数据库。

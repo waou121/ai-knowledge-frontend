@@ -1,5 +1,7 @@
 import http from "node:http";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const envPath = new URL("../.env", import.meta.url);
 if (existsSync(envPath)) {
@@ -21,6 +23,9 @@ const model = process.env.LLM_MODEL || "deepseek-chat";
 const ragIndexPath = new URL("./rag-index.json", import.meta.url);
 const demoRagIndexPath = new URL("./rag-index.demo.json", import.meta.url);
 const activeRagIndexPath = existsSync(ragIndexPath) ? ragIndexPath : demoRagIndexPath;
+const serverDir = path.dirname(fileURLToPath(import.meta.url));
+const ragDataDir = process.env.RAG_DATA_DIR || path.join(serverDir, "data");
+const uploadedRagPath = path.join(ragDataDir, "uploaded-rag.json");
 
 let ragChunks = [];
 let ragIndexName = "none";
@@ -41,6 +46,40 @@ if (existsSync(activeRagIndexPath)) {
     console.warn(`Failed to load local RAG index: ${error instanceof Error ? error.message : error}`);
   }
 }
+
+function loadUploadedRagStore() {
+  if (!existsSync(uploadedRagPath)) return;
+  try {
+    const payload = JSON.parse(readFileSync(uploadedRagPath, "utf-8"));
+    const uploadedChunks = Array.isArray(payload.chunks) ? payload.chunks : [];
+    const documents = Array.isArray(payload.documents) ? payload.documents : [];
+    ragChunks.push(...uploadedChunks);
+    for (const document of documents) {
+      uploadedDocuments.set(String(document.id), document);
+    }
+    if (uploadedChunks.length) {
+      ragIndexName = ragIndexName === "none" ? "uploaded" : `${ragIndexName}+uploaded`;
+      ragRetrieval = { ...ragRetrieval, ...(payload.retrieval || {}) };
+    }
+  } catch (error) {
+    console.warn(`Failed to load uploaded RAG store: ${error instanceof Error ? error.message : error}`);
+  }
+}
+
+function saveUploadedRagStore() {
+  mkdirSync(ragDataDir, { recursive: true });
+  const uploadedChunks = ragChunks.filter((chunk) => String(chunk.path || "").startsWith("uploaded://"));
+  const payload = {
+    updatedAt: new Date().toISOString(),
+    documents: [...uploadedDocuments.values()],
+    chunkCount: uploadedChunks.length,
+    retrieval: ragRetrieval,
+    chunks: uploadedChunks,
+  };
+  writeFileSync(uploadedRagPath, JSON.stringify(payload, null, 2), "utf-8");
+}
+
+loadUploadedRagStore();
 
 const libraries = [
   {
@@ -78,6 +117,17 @@ const libraries = [
     ],
   },
 ];
+
+function restoreUploadedDocumentsIntoLibraries() {
+  for (const document of uploadedDocuments.values()) {
+    const library = libraries.find((item) => item.id === document.libraryId) || libraries[0];
+    if (!library.docs.some((item) => String(item.id) === String(document.id))) {
+      library.docs.unshift(document);
+    }
+  }
+}
+
+restoreUploadedDocumentsIntoLibraries();
 
 const references = [
   {
@@ -583,6 +633,9 @@ const server = http.createServer(async (req, res) => {
         sourceCount: sourceNames.length,
         sources: sourceNames.slice(0, 12),
         retrieval: ragRetrieval,
+        uploadedDocumentCount: uploadedDocuments.size,
+        uploadedChunkCount: ragChunks.filter((chunk) => String(chunk.path || "").startsWith("uploaded://")).length,
+        persistentStore: uploadedRagPath,
       });
       return;
     }
@@ -602,6 +655,7 @@ const server = http.createServer(async (req, res) => {
       const documentId = Date.now();
       const document = {
         id: documentId,
+        libraryId,
         name: uploadedFile.filename,
         type: documentTypeFrom(uploadedFile.filename, uploadedFile.mimeType),
         size: formatFileSize(uploadedFile.size),
@@ -617,6 +671,7 @@ const server = http.createServer(async (req, res) => {
         document.error = error instanceof Error ? error.message : "Parse failed";
       }
       uploadedDocuments.set(String(documentId), document);
+      saveUploadedRagStore();
       library.docs.unshift(document);
       sendJson(res, document);
       return;

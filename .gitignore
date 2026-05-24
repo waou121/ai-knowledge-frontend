@@ -10,6 +10,7 @@ pnpm-debug.log*
 vite-dev*.log
 llm-proxy*.log
 *.local
+server/data/
 server/rag-index*.json
 rag-index*.json
 !server/rag-index.demo.json
