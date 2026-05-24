@@ -319,6 +319,58 @@ function readJson(req) {
   });
 }
 
+function readBuffer(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (chunk) => {
+      chunks.push(Buffer.from(chunk));
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
+}
+
+async function readUploadedFile(req) {
+  const contentType = req.headers["content-type"] || "";
+  const boundary = String(contentType).match(/boundary=(?:"([^"]+)"|([^;]+))/)?.[1] || String(contentType).match(/boundary=(?:"([^"]+)"|([^;]+))/)?.[2];
+  if (!boundary) {
+    throw new Error("Missing multipart boundary");
+  }
+
+  const body = await readBuffer(req);
+  const text = body.toString("latin1");
+  const headerEnd = text.indexOf("\r\n\r\n");
+  if (headerEnd < 0) {
+    throw new Error("Invalid multipart payload");
+  }
+
+  const header = text.slice(0, headerEnd);
+  const filenameRaw = header.match(/filename="([^"]*)"/)?.[1] || "uploaded-document";
+  const filename = Buffer.from(filenameRaw, "latin1").toString("utf8") || filenameRaw;
+  const mimeType = header.match(/Content-Type:\s*([^\r\n]+)/i)?.[1]?.trim() || "application/octet-stream";
+  const contentStart = headerEnd + 4;
+  const boundaryMarker = `\r\n--${boundary}`;
+  const contentEnd = text.indexOf(boundaryMarker, contentStart);
+  const size = Math.max(0, (contentEnd > contentStart ? contentEnd : text.length) - contentStart);
+
+  return { filename, mimeType, size };
+}
+
+function formatFileSize(bytes) {
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function documentTypeFrom(filename, mimeType) {
+  const ext = String(filename).split(".").pop()?.toLowerCase() || "";
+  if (ext === "pdf" || mimeType.includes("pdf")) return "PDF";
+  if (["md", "markdown"].includes(ext)) return "Markdown";
+  if (ext === "txt") return "TXT";
+  if (["doc", "docx"].includes(ext)) return "Word";
+  if (["ppt", "pptx"].includes(ext)) return "PPTX";
+  return ext ? ext.toUpperCase() : "FILE";
+}
+
 function fallbackAnswer(question) {
   if (/ODMR|无峰|信噪比|调参/i.test(question)) {
     return `ODMR 无峰建议按顺序排查：1. 频率范围是否覆盖 2.87 GHz 附近及偏置场引起的偏移；2. 微波输出、开关和天线连接是否正常；3. 激光对焦、相机曝光和荧光强度是否稳定；4. 平均次数、积分时间和拟合窗口是否合理；5. 保存参数快照，便于复现实验。`;
@@ -483,7 +535,19 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (/^\/api\/libraries\/[^/]+\/documents$/.test(url.pathname) && req.method === "POST") {
-      sendJson(res, { id: Date.now(), name: "uploaded-document.md", type: "Markdown", size: "0 KB", status: "解析中", chunks: 0 });
+      const libraryId = decodeURIComponent(url.pathname.split("/")[3] || "");
+      const library = libraries.find((item) => item.id === libraryId) || libraries[0];
+      const uploadedFile = await readUploadedFile(req);
+      const document = {
+        id: Date.now(),
+        name: uploadedFile.filename,
+        type: documentTypeFrom(uploadedFile.filename, uploadedFile.mimeType),
+        size: formatFileSize(uploadedFile.size),
+        status: "解析中",
+        chunks: 0,
+      };
+      library.docs.unshift(document);
+      sendJson(res, document);
       return;
     }
     if (/^\/api\/libraries\/[^/]+\/documents\/\d+\/parse$/.test(url.pathname) && req.method === "POST") {
