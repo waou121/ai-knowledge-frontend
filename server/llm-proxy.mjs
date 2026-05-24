@@ -24,6 +24,7 @@ const activeRagIndexPath = existsSync(ragIndexPath) ? ragIndexPath : demoRagInde
 
 let ragChunks = [];
 let ragIndexName = "none";
+const uploadedDocuments = new Map();
 let ragRetrieval = {
   embeddingModel: "keyword-only",
   embeddingDim: 384,
@@ -225,6 +226,64 @@ function highlightSnippet(text, tokens) {
   return html;
 }
 
+function chunkText(text, chunkSize = 850, overlap = 120) {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return [];
+
+  const chunks = [];
+  let start = 0;
+  while (start < normalized.length) {
+    const end = Math.min(normalized.length, start + chunkSize);
+    const chunk = normalized.slice(start, end).trim();
+    if (chunk) chunks.push(chunk);
+    if (end >= normalized.length) break;
+    start = Math.max(0, end - overlap);
+  }
+  return chunks;
+}
+
+async function extractDocumentText(uploadedFile) {
+  const type = documentTypeFrom(uploadedFile.filename, uploadedFile.mimeType);
+  if (type === "PDF") {
+    const module = await import("pdf-parse");
+    const pdfParse = module.default || module;
+    const result = await pdfParse(uploadedFile.content);
+    return result.text || "";
+  }
+  if (["Markdown", "TXT"].includes(type)) {
+    return uploadedFile.content.toString("utf-8");
+  }
+  throw new Error(`Unsupported document type: ${type}`);
+}
+
+async function indexUploadedDocument(uploadedFile, documentId) {
+  const text = await extractDocumentText(uploadedFile);
+  const chunks = chunkText(text);
+  if (!chunks.length) {
+    throw new Error("No extractable text found in document");
+  }
+
+  const newChunks = chunks.map((chunk, index) => ({
+    id: `upload-${documentId}-c${index + 1}`,
+    source: uploadedFile.filename,
+    path: `uploaded://${uploadedFile.filename}`,
+    page: null,
+    chunk: index + 1,
+    text: chunk,
+    embedding: embedText(`${uploadedFile.filename} ${chunk}`),
+  }));
+
+  ragChunks.push(...newChunks);
+  ragIndexName = ragIndexName === "none" ? "uploaded" : ragIndexName;
+  ragRetrieval = {
+    ...ragRetrieval,
+    embeddingModel: "local-hash-tfidf-v1",
+    vectorSearch: "cosine",
+    rerank: "hybrid-vector-keyword-title-v1",
+  };
+  return newChunks.length;
+}
+
 function searchRag(question, topK = 5) {
   if (!ragChunks.length) return [];
   const queryTokens = tokenize(question);
@@ -351,9 +410,11 @@ async function readUploadedFile(req) {
   const contentStart = headerEnd + 4;
   const boundaryMarker = `\r\n--${boundary}`;
   const contentEnd = text.indexOf(boundaryMarker, contentStart);
-  const size = Math.max(0, (contentEnd > contentStart ? contentEnd : text.length) - contentStart);
+  const finalContentEnd = contentEnd > contentStart ? contentEnd : text.length;
+  const size = Math.max(0, finalContentEnd - contentStart);
+  const content = body.subarray(contentStart, finalContentEnd);
 
-  return { filename, mimeType, size };
+  return { filename, mimeType, size, content };
 }
 
 function formatFileSize(bytes) {
@@ -538,14 +599,24 @@ const server = http.createServer(async (req, res) => {
       const libraryId = decodeURIComponent(url.pathname.split("/")[3] || "");
       const library = libraries.find((item) => item.id === libraryId) || libraries[0];
       const uploadedFile = await readUploadedFile(req);
+      const documentId = Date.now();
       const document = {
-        id: Date.now(),
+        id: documentId,
         name: uploadedFile.filename,
         type: documentTypeFrom(uploadedFile.filename, uploadedFile.mimeType),
         size: formatFileSize(uploadedFile.size),
         status: "解析中",
         chunks: 0,
       };
+      document.status = "解析中";
+      try {
+        document.chunks = await indexUploadedDocument(uploadedFile, documentId);
+        document.status = "已解析";
+      } catch (error) {
+        document.status = "解析失败";
+        document.error = error instanceof Error ? error.message : "Parse failed";
+      }
+      uploadedDocuments.set(String(documentId), document);
       library.docs.unshift(document);
       sendJson(res, document);
       return;
