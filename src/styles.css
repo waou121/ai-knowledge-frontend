@@ -423,6 +423,26 @@ button:disabled {
   font-size: 13px;
 }
 
+.reference-snippet mark {
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #7c2d12;
+}
+
+.reference-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reference-meta span,
+.retrieval-line {
+  color: #7a8799;
+  font-size: 12px;
+}
+
 .tag {
   display: inline-flex;
   align-items: center;

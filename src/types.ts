@@ -34,6 +34,9 @@ export interface ReferenceItem {
   title: string;
   source: string;
   tag: string;
+  highlightedSource?: string;
+  score?: string;
+  retrieval?: string;
 }
 
 export interface MetricItem {

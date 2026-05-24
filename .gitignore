@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.env
 .env.local
 .env.*.local
 npm-debug.log*
@@ -7,4 +8,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 vite-dev*.log
+llm-proxy*.log
 *.local
+server/rag-index*.json
+rag-index*.json

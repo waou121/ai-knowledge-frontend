@@ -71,7 +71,7 @@ export const initialLibraries: KnowledgeLibrary[] = [
   },
   {
     id: "ai",
-    name: "AI Agent 技术资料库",
+    name: "AI Agent 与机器学习百科库",
     docs: [
       { id: 301, name: "Agentic RAG 设计笔记.md", type: "Markdown", size: "224 KB", status: "已解析", chunks: 69 },
       { id: 302, name: "Tool Calling 接口规范.pdf", type: "PDF", size: "1.2 MB", status: "已解析", chunks: 102 },
@@ -80,6 +80,37 @@ export const initialLibraries: KnowledgeLibrary[] = [
       { id: 305, name: "Deep learning enhanced Rydberg multifrequency sensing.pdf", type: "PDF", size: "2.2 MB", status: "已解析", chunks: 166 },
       { id: 306, name: "Physics-informed magnetic field source reconstruction notes.md", type: "Markdown", size: "186 KB", status: "已解析", chunks: 58 },
       { id: 307, name: "AI Agent 文献问答系统接口设计.md", type: "Markdown", size: "142 KB", status: "已解析", chunks: 47 },
+      { id: 308, name: "LLM Agent 基础：Planning、Memory、Tools、Reflection.md", type: "Markdown", size: "196 KB", status: "已解析", chunks: 88 },
+      { id: 309, name: "ReAct 工作流：Thought、Action、Observation 设计.md", type: "Markdown", size: "174 KB", status: "已解析", chunks: 79 },
+      { id: 310, name: "Tool Calling 工具注册、参数校验与错误恢复.md", type: "Markdown", size: "168 KB", status: "已解析", chunks: 73 },
+      { id: 311, name: "RAG 知识库：文本切分、Embedding、向量检索、重排序.md", type: "Markdown", size: "232 KB", status: "已解析", chunks: 105 },
+      { id: 312, name: "Embedding 模型选型与相似度检索评估.md", type: "Markdown", size: "158 KB", status: "已解析", chunks: 67 },
+      { id: 313, name: "Prompt Engineering：角色、约束、引用、结构化输出.md", type: "Markdown", size: "151 KB", status: "已解析", chunks: 63 },
+      { id: 314, name: "机器学习基础：训练集、验证集、测试集与交叉验证.md", type: "Markdown", size: "145 KB", status: "已解析", chunks: 59 },
+      { id: 315, name: "PyTorch 入门：Dataset、DataLoader、Module、训练循环.md", type: "Markdown", size: "211 KB", status: "已解析", chunks: 94 },
+      { id: 316, name: "实验信号处理：滤波、降噪、峰值检测与曲线拟合.md", type: "Markdown", size: "189 KB", status: "已解析", chunks: 83 },
+      { id: 317, name: "谱线分类与异常检测：特征工程、CNN、AutoEncoder.md", type: "Markdown", size: "176 KB", status: "已解析", chunks: 76 },
+      { id: 318, name: "模型评估指标：准确率、召回率、F1、RMSE、R2.md", type: "Markdown", size: "139 KB", status: "已解析", chunks: 55 },
+      { id: 319, name: "AI Agent 安全边界：工具权限、确认机制与日志追踪.md", type: "Markdown", size: "166 KB", status: "已解析", chunks: 72 },
+      { id: 320, name: "端侧 AI 部署：量化、缓存、并发与延迟优化.md", type: "Markdown", size: "182 KB", status: "已解析", chunks: 81 },
+    ],
+  },
+  {
+    id: "lab-wiki",
+    name: "项目组百科与实验 SOP",
+    docs: [
+      { id: 401, name: "NV 色心入门术语表.md", type: "Markdown", size: "96 KB", status: "已解析", chunks: 42 },
+      { id: 402, name: "ODMR 实验 SOP：从开机到寻峰.md", type: "Markdown", size: "188 KB", status: "已解析", chunks: 86 },
+      { id: 403, name: "Rabi / Ramsey / Echo 实验流程速查.md", type: "Markdown", size: "164 KB", status: "已解析", chunks: 78 },
+      { id: 404, name: "宽场磁成像采集规范.md", type: "Markdown", size: "152 KB", status: "已解析", chunks: 73 },
+      { id: 405, name: "仪器连接与 Serial / SCPI 地址表.md", type: "Markdown", size: "128 KB", status: "已解析", chunks: 61 },
+      { id: 406, name: "常见故障排查手册：无峰、低信噪比、漂移.md", type: "Markdown", size: "214 KB", status: "已解析", chunks: 104 },
+      { id: 407, name: "实验数据命名、归档与复现实验规范.md", type: "Markdown", size: "118 KB", status: "已解析", chunks: 56 },
+      { id: 408, name: "上位机软件部署与 PyInstaller 打包说明.md", type: "Markdown", size: "136 KB", status: "已解析", chunks: 64 },
+      { id: 409, name: "激光、微波与位移台安全操作 checklist.md", type: "Markdown", size: "112 KB", status: "已解析", chunks: 53 },
+      { id: 410, name: "项目组新人上手路线：文献、实验、代码.md", type: "Markdown", size: "175 KB", status: "已解析", chunks: 82 },
+      { id: 411, name: "上位机工具调用清单：参数设置、采集、拟合、导出.md", type: "Markdown", size: "145 KB", status: "已解析", chunks: 69 },
+      { id: 412, name: "实验记录模板：样品、光路、微波、采集参数.md", type: "Markdown", size: "84 KB", status: "已解析", chunks: 39 },
     ],
   },
 ];
@@ -169,6 +200,62 @@ export const initialConversations: Conversation[] = [
       },
     ],
   },
+  {
+    id: "c9",
+    title: "Agent 架构设计",
+    libraryId: "ai",
+    updatedAt: "今天",
+    messages: [
+      { role: "user", content: "一个实验室 AI Agent 应该怎么设计工具调用流程？" },
+      {
+        role: "assistant",
+        content:
+          "建议采用 Planner -> Tool Calling -> Observation -> Verifier -> Response 的流程。工具层要做参数校验、权限控制、执行日志和错误恢复；涉及仪器输出、位移台移动、微波功率修改等高风险动作时，需要二次确认。",
+      },
+    ],
+  },
+  {
+    id: "c10",
+    title: "机器学习处理实验谱线",
+    libraryId: "ai",
+    updatedAt: "今天",
+    messages: [
+      { role: "user", content: "如何用机器学习处理 ODMR 谱线？" },
+      {
+        role: "assistant",
+        content:
+          "可以先做基线扣除、平滑滤波、峰值检测和归一化，再根据任务选择模型：分类任务可用 CNN 或传统特征 + SVM，参数估计可用 MLP 或拟合先验，异常检测可用 AutoEncoder 或 Isolation Forest。",
+      },
+    ],
+  },
+  {
+    id: "c7",
+    title: "新人上手路线",
+    libraryId: "lab-wiki",
+    updatedAt: "今天",
+    messages: [
+      { role: "user", content: "新人第一次接触 NV 实验，应该按什么顺序学习？" },
+      {
+        role: "assistant",
+        content:
+          "建议按“概念术语 -> ODMR 基础 -> 仪器连接 -> 上位机操作 -> 数据命名 -> 故障排查 -> 文献专题”的顺序上手。第一周先能独立完成一次 ODMR 扫描和结果保存，第二周再进入 Rabi、宽场成像或灵敏度优化。",
+      },
+    ],
+  },
+  {
+    id: "c8",
+    title: "数据归档规范",
+    libraryId: "lab-wiki",
+    updatedAt: "今天",
+    messages: [
+      { role: "user", content: "实验数据应该怎么命名，方便后面复现？" },
+      {
+        role: "assistant",
+        content:
+          "推荐使用日期、样品编号、实验类型、关键参数和版本号组合命名，例如 20260524_SampleA_ODMR_2p82-2p92GHz_Pmw-10dBm_v01。记录中同步保存激光功率、微波功率、曝光、平均次数、温度和操作者。",
+      },
+    ],
+  },
 ];
 
 export const references: ReferenceItem[] = [
@@ -217,13 +304,58 @@ export const references: ReferenceItem[] = [
     source: "Rydberg 原子传感在宽带电场测量和频谱分析中具有优势，可作为 NV 色心磁场近场成像能力的互补技术路线。",
     tag: "技术对比",
   },
+  {
+    title: "ODMR 实验 SOP：从开机到寻峰.md / checklist",
+    source: "标准流程包括检查激光与相机、连接微波源、确认 TTL 触发、设置频率扫描范围、执行低分辨率预扫、缩小窗口拟合并保存参数快照。",
+    tag: "实验 SOP",
+  },
+  {
+    title: "仪器连接与 Serial / SCPI 地址表.md / device map",
+    source: "组内仪器应记录设备型号、连接方式、串口号或 VISA 地址、波特率、常用 SCPI 命令和上位机工具函数，避免实验时重复排查通信问题。",
+    tag: "仪器通信",
+  },
+  {
+    title: "实验数据命名、归档与复现实验规范.md / data rule",
+    source: "每次实验应保存原始数据、处理脚本、关键参数、拟合结果和实验备注，目录命名优先保证可检索、可复现和可追溯。",
+    tag: "数据归档",
+  },
+  {
+    title: "上位机软件部署与 PyInstaller 打包说明.md / deployment",
+    source: "打包前需要确认驱动 DLL、ctypes 调用路径、模型文件、知识库索引和配置文件被正确纳入发布目录，并在无开发环境机器上验证。",
+    tag: "软件部署",
+  },
+  {
+    title: "RAG 知识库：文本切分、Embedding、向量检索、重排序.md / retrieval",
+    source: "RAG 质量通常由切分粒度、Embedding 模型、召回数量、重排序策略和引用片段展示共同决定，需要同时优化召回率和答案可验证性。",
+    tag: "RAG 检索",
+  },
+  {
+    title: "ReAct 工作流：Thought、Action、Observation 设计.md / agent loop",
+    source: "ReAct 将推理过程与工具调用交替组织，适合需要分步检索、读取文档、调用实验工具并根据观察结果继续决策的任务。",
+    tag: "ReAct",
+  },
+  {
+    title: "PyTorch 入门：Dataset、DataLoader、Module、训练循环.md / training",
+    source: "PyTorch 训练流程一般包括数据集封装、批量加载、模型前向传播、损失计算、反向传播、优化器更新和验证集评估。",
+    tag: "PyTorch",
+  },
+  {
+    title: "实验信号处理：滤波、降噪、峰值检测与曲线拟合.md / signal processing",
+    source: "实验谱线处理应先做质量检查和预处理，再进行寻峰、拟合、参数估计和异常标注，避免模型学习到仪器漂移或采集噪声。",
+    tag: "信号处理",
+  },
+  {
+    title: "AI Agent 安全边界：工具权限、确认机制与日志追踪.md / safety",
+    source: "实验室 Agent 调用真实仪器前应区分只读工具和写入工具，对高风险动作增加参数范围限制、人工确认和执行日志。",
+    tag: "Agent 安全",
+  },
 ];
 
 export const metrics: MetricItem[] = [
   { label: "本地文献总数", value: "848" },
-  { label: "PDF 文献", value: "836" },
-  { label: "主题分类", value: "9" },
-  { label: "解析片段", value: "7,318" },
+  { label: "百科条目", value: "25" },
+  { label: "主题分类", value: "14" },
+  { label: "解析片段", value: "9,781" },
 ];
 
 export const trendData = [38, 64, 92, 126, 188, 271, 346];
@@ -238,4 +370,9 @@ export const categoryData: CategoryDatum[] = [
   { name: "Rydberg/原子传感", value: 34 },
   { name: "生物/医学应用", value: 30 },
   { name: "AI/反演重建", value: 18 },
+  { name: "实验 SOP/故障排查", value: 42 },
+  { name: "软件部署/数据规范", value: 27 },
+  { name: "AI Agent/RAG", value: 64 },
+  { name: "机器学习/信号处理", value: 53 },
+  { name: "模型部署/安全边界", value: 31 },
 ];

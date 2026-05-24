@@ -14,6 +14,7 @@
 - 接入 `Element Plus` 完成表单、上传、表格、标签、按钮和消息提示
 - 使用 `ECharts` 展示文献分类、问答趋势和知识库统计指标
 - mock 知识库基于 NV 色心、量子传感、Rydberg 原子传感等科研文献主题构建
+- 提供 Node 本地大模型代理，可接入 OpenAI-compatible Chat Completions API
 
 ## 技术栈
 
@@ -39,6 +40,8 @@ SSE
 | 知识库管理 | 文档上传、解析状态、文档表格、批量解析 |
 | 数据看板 | 文献数量、PDF 数量、主题分类、解析片段统计 |
 | API 封装 | 登录、上传、解析、问答、SSE 流接口预留 |
+| 组内百科 | 实验 SOP、故障排查、仪器通信、数据归档、软件部署、安全 checklist |
+| AI/ML 百科 | Agent 架构、ReAct、Tool Calling、RAG、Embedding、PyTorch、谱线处理、模型评估 |
 
 ## 知识库内容
 
@@ -68,6 +71,8 @@ ODMR/微波/RF：109
 Rydberg/原子传感：34
 生物/医学应用：30
 AI/反演重建：18
+实验 SOP/故障排查：42
+软件部署/数据规范：27
 ```
 
 ## 目录结构
@@ -120,6 +125,47 @@ Windows 下如果新终端暂时识别不到 `node` / `npm`，可以运行：
 ```powershell
 .\start-dev.ps1
 ```
+
+## 接入真实大模型 API
+
+浏览器端不能直接保存大模型 API Key，因此项目提供了本地代理服务：
+
+```bash
+npm run server
+```
+
+复制环境变量模板：
+
+```bash
+copy .env.example .env
+```
+
+填写 `.env`：
+
+```text
+LLM_API_KEY=你的大模型 API Key
+LLM_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-chat
+LLM_PROXY_PORT=8787
+```
+
+注意：不要把真实 API Key 提交到 GitHub。`.env` 已经在 `.gitignore` 中，只应保存在本机或服务器。
+
+前端根目录新建 `.env.local`：
+
+```text
+VITE_USE_MOCK=false
+VITE_API_BASE_URL=http://127.0.0.1:8787/api
+```
+
+然后同时启动：
+
+```bash
+npm run server
+npm run dev
+```
+
+代理支持 OpenAI-compatible `/chat/completions` 接口。没有填写 `LLM_API_KEY` 时，会自动使用本地兜底回答，方便调试前端流程。
 
 ## 环境变量
 
@@ -198,3 +244,33 @@ AI 知识库问答与数据分析平台 | 前端开发
 - 增加会话持久化、用户权限和知识库权限管理
 - 增加问答评价、引用片段高亮和文档预览能力
 - 对 Element Plus 和 ECharts 做按需加载，进一步优化首屏体积
+
+## 本地论文 RAG
+
+论文可以做成 RAG。当前项目已经支持把本地 PDF / Markdown / TXT 资料解析成 `server/rag-index.json`，后端启动时会自动读取该索引，并在问答时把命中的论文片段放进大模型上下文。
+
+生成论文索引：
+
+```powershell
+Set-Location "D:\新python上位机\ai-knowledge-frontend"
+npm run rag:build -- --source "D:\论文\NV centers" --output server\rag-index.json --limit 80 --max-pages 8
+```
+
+启动后端和前端：
+
+```powershell
+npm run server
+npm run dev
+```
+
+检查 RAG 是否加载成功：
+
+```text
+http://127.0.0.1:8787/api/rag/status
+```
+
+说明：
+
+- `server/rag-index.json` 已加入 `.gitignore`，不会上传到 GitHub，避免公开论文内容。
+- GitHub Pages 只能部署静态前端，不能直接运行本地 RAG 后端。给项目组使用时，需要在实验室电脑、内网服务器或云服务器上运行 `npm run server`。
+- 当前 RAG 检索是轻量关键词召回，适合演示和小型知识库。后续可以升级为 Embedding + 向量数据库 + rerank，以获得更稳定的语义检索效果。

@@ -29,8 +29,13 @@
       <div class="reference-list">
         <el-card v-for="item in store.references" :key="item.title" class="reference-card" shadow="never">
           <button type="button">{{ item.title }}</button>
-          <p>{{ item.source }}</p>
-          <p><el-tag>{{ item.tag }}</el-tag></p>
+          <p v-if="item.highlightedSource" class="reference-snippet" v-html="item.highlightedSource"></p>
+          <p v-else>{{ item.source }}</p>
+          <p class="reference-meta">
+            <el-tag>{{ item.tag }}</el-tag>
+            <span v-if="item.score">score {{ item.score }}</span>
+          </p>
+          <p v-if="item.retrieval" class="retrieval-line">{{ item.retrieval }}</p>
         </el-card>
       </div>
     </aside>
