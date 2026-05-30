@@ -35,6 +35,8 @@ export const initialLibraries: KnowledgeLibrary[] = [
       { id: 28, name: "Diamond-based single-molecule magnetic resonance spectroscopy.pdf", type: "PDF", size: "3.5 MB", status: "已解析", chunks: 258 },
       { id: 29, name: "Ambient nanoscale sensing with single spins using quantum decoherence.pdf", type: "PDF", size: "2.1 MB", status: "已解析", chunks: 174 },
       { id: 30, name: "金刚石NV色心磁力计极限灵敏度优化方法.pdf", type: "PDF", size: "2.9 MB", status: "已解析", chunks: 219 },
+      { id: 31, name: "量子指南针演示：NV 地磁矢量反演科普.md", type: "Markdown", size: "104 KB", status: "已解析", chunks: 48 },
+      { id: 32, name: "固定 D/E 少峰矢量反演：八峰、四峰与三峰对比.md", type: "Markdown", size: "132 KB", status: "已解析", chunks: 61 },
     ],
   },
   {
@@ -111,6 +113,8 @@ export const initialLibraries: KnowledgeLibrary[] = [
       { id: 410, name: "项目组新人上手路线：文献、实验、代码.md", type: "Markdown", size: "175 KB", status: "已解析", chunks: 82 },
       { id: 411, name: "上位机工具调用清单：参数设置、采集、拟合、导出.md", type: "Markdown", size: "145 KB", status: "已解析", chunks: 69 },
       { id: 412, name: "实验记录模板：样品、光路、微波、采集参数.md", type: "Markdown", size: "84 KB", status: "已解析", chunks: 39 },
+      { id: 413, name: "地磁指南针演示 SOP：手机对照、偏置校准与少峰模式.md", type: "Markdown", size: "121 KB", status: "已解析", chunks: 57 },
+      { id: 414, name: "量子传感公众科普话术：钻石、微波、ODMR 和地磁场.md", type: "Markdown", size: "98 KB", status: "已解析", chunks: 44 },
     ],
   },
 ];
@@ -253,6 +257,34 @@ export const initialConversations: Conversation[] = [
         role: "assistant",
         content:
           "推荐使用日期、样品编号、实验类型、关键参数和版本号组合命名，例如 20260524_SampleA_ODMR_2p82-2p92GHz_Pmw-10dBm_v01。记录中同步保存激光功率、微波功率、曝光、平均次数、温度和操作者。",
+      },
+    ],
+  },
+  {
+    id: "c11",
+    title: "量子指南针演示",
+    libraryId: "nv",
+    updatedAt: "刚刚",
+    messages: [
+      { role: "user", content: "怎么向观众解释 NV 量子指南针？" },
+      {
+        role: "assistant",
+        content:
+          "可以说：手机指南针用经典磁传感芯片读地磁场，NV 指南针用钻石里的量子自旋读地磁场。绿光负责读出自旋，微波负责寻找共振频率，地磁场会让 ODMR 谱线轻微移动，软件再从多条谱线反推出磁场矢量并画成指南针。",
+      },
+    ],
+  },
+  {
+    id: "c12",
+    title: "四峰快速矢量反演",
+    libraryId: "lab-wiki",
+    updatedAt: "刚刚",
+    messages: [
+      { role: "user", content: "为什么 D/E 已知时四峰可以比八峰更快？" },
+      {
+        role: "assistant",
+        content:
+          "八峰最稳，可以一起校准峰归属、D/E 和温漂；但如果 D/E 已知，未知量主要剩 Bx、By、Bz。低频4峰或高频4峰通常就能给出足够约束，所以能缩小扫描范围、降低平均次数，换取更快的指南针刷新。",
       },
     ],
   },

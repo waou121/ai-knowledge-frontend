@@ -92,6 +92,8 @@ const libraries = [
       { id: 406, name: "常见故障排查手册：无峰、低信噪比、漂移.md", type: "Markdown", size: "214 KB", status: "已解析", chunks: 104 },
       { id: 407, name: "实验数据命名、归档与复现实验规范.md", type: "Markdown", size: "118 KB", status: "已解析", chunks: 56 },
       { id: 408, name: "上位机软件部署与 PyInstaller 打包说明.md", type: "Markdown", size: "136 KB", status: "已解析", chunks: 64 },
+      { id: 413, name: "地磁指南针演示 SOP：手机对照、偏置校准与少峰模式.md", type: "Markdown", size: "121 KB", status: "已解析", chunks: 57 },
+      { id: 414, name: "量子传感公众科普话术：钻石、微波、ODMR 和地磁场.md", type: "Markdown", size: "98 KB", status: "已解析", chunks: 44 },
     ],
   },
   {
@@ -114,6 +116,8 @@ const libraries = [
       { id: 6, name: "Avoiding power broadening in optically detected magnetic resonance of single NV defects.pdf", type: "PDF", size: "1.4 MB", status: "已解析", chunks: 118 },
       { id: 9, name: "Wide-field magnetometry using nitrogen-vacancy color centers with randomly oriented micro-diamonds.pdf", type: "PDF", size: "3.0 MB", status: "已解析", chunks: 232 },
       { id: 30, name: "金刚石NV色心磁力计极限灵敏度优化方法.pdf", type: "PDF", size: "2.9 MB", status: "已解析", chunks: 219 },
+      { id: 31, name: "量子指南针演示：NV 地磁矢量反演科普.md", type: "Markdown", size: "104 KB", status: "已解析", chunks: 48 },
+      { id: 32, name: "固定 D/E 少峰矢量反演：八峰、四峰与三峰对比.md", type: "Markdown", size: "132 KB", status: "已解析", chunks: 61 },
     ],
   },
 ];
@@ -160,6 +164,16 @@ const references = [
     source: "实验谱线处理应先做质量检查和预处理，再进行寻峰、拟合、参数估计和异常标注，避免模型学习到仪器漂移或采集噪声。",
     tag: "信号处理",
   },
+  {
+    title: "量子指南针演示：NV 地磁矢量反演科普.md / compass demo",
+    source: "NV 指南针通过 ODMR 共振峰的塞曼劈裂反推出地磁场矢量，再取水平分量显示航向；与手机对照时需要做一次偏置角标定。",
+    tag: "量子指南针",
+  },
+  {
+    title: "固定 D/E 少峰矢量反演：八峰、四峰与三峰对比.md / fast vector inversion",
+    source: "八峰最稳但慢；D/E 已知时可用低频4峰或高频4峰快速求 Bx、By、Bz，三峰更快但对噪声和峰归属更敏感。",
+    tag: "少峰反演",
+  },
 ];
 
 const knowledgeContext = `
@@ -167,6 +181,7 @@ const knowledgeContext = `
 
 项目组知识库包括：
 - NV 色心基础：ODMR、零场劈裂、Rabi、Ramsey、Echo、T2*、T2、矢量磁测量、温度漂移。
+- 量子指南针：地磁场矢量、手机指南针对照、航向角、偏置角校准、室内磁干扰、八峰/四峰/三峰速度与精度取舍。
 - 实验 SOP：开机检查、仪器连接、宽频预扫、精扫拟合、参数快照、结果保存。
 - 仪器通信：Serial、SCPI、VISA 地址、波特率、终止符、*IDN? 查询、超时处理。
 - 数据规范：日期_样品_实验类型_关键参数_版本号；保存原始数据、脚本、拟合结果、备注。
@@ -177,6 +192,7 @@ const knowledgeContext = `
 - 安全：激光防护、微波功率上限、位移台防撞、长时间采集温漂记录。
 
 如果问题涉及实验安全，先提醒安全检查。若信息不足，说明需要补充哪些参数。
+如果问题涉及量子指南针演示，优先解释“绿光读出、微波扫频、ODMR 峰位移动、矢量反演、手机偏置校准”的链路，并给出适合公众展示的简明话术。
 `;
 
 function tokenize(text) {
@@ -483,6 +499,24 @@ function documentTypeFrom(filename, mimeType) {
 }
 
 function fallbackAnswer(question) {
+  if (/指南针|地磁|罗盘|航向|手机|compass|heading/i.test(question)) {
+    return `NV 量子指南针可以这样解释：绿光负责初始化和读出钻石 NV 色心的自旋，微波负责扫描共振频率，地磁场会让 ODMR 峰发生塞曼劈裂。软件从多个峰位反推出 Bx、By、Bz，再取水平分量显示航向。和手机指南针对照时，需要先做偏置角校准：偏置角 = 手机角度 - NV 原始角度。`;
+  }
+  if (/八峰|8峰|四峰|4峰|三峰|3峰|少峰|低频4|高频4|矢量反演|vector/i.test(question)) {
+    return `八峰模式最稳，可以帮助判断峰归属、D/E、温漂和磁场方向，但扫描更慢。D/E 已知时，未知量主要是 Bx、By、Bz，因此低频4峰或高频4峰通常足够做快速矢量反演。三峰也可能解出方向，但对噪声和峰归属更敏感，适合快速演示，不适合高精度读数。`;
+  }
+  if (/D\/E|DE|零场分裂|应力|strain|参数已知|2870/i.test(question)) {
+    return `D 是 NV 色心的零场分裂，室温附近约 2870 MHz，可以理解为 ODMR 谱线的中心参考；E 反映晶体应力、电场或局部环境带来的横向劈裂。若 D/E 已知并固定，峰位变化就主要来自外部磁场，少峰矢量反演会更快。`;
+  }
+  if (/平均次数|速度|快一点|延迟|实时|精度|噪声|averag/i.test(question)) {
+    return `平均次数越大，噪声越小、峰位更稳，但读数更慢；平均次数越小，指南针刷新更快，但方向更容易抖动。演示地磁时可以先从 500 或 1000 次平均试起，若峰丢失或方向跳变，再提高平均次数或从三峰模式切回四峰模式。`;
+  }
+  if (/跳变|对不上|不准|校准|偏置|干扰|金属|电流|线圈|磁铁/i.test(question)) {
+    return `NV 指南针和手机不一致时，先确认探头和手机是否同向摆放，再做偏置角校准。还要远离铁桌、磁铁、马达、电源线、音箱和大电流线圈。若少峰模式方向跳变，通常是峰归属错了或信噪比不够，建议切回低频4峰/高频4峰，必要时重新做一次八峰锁定。`;
+  }
+  if (/讲解|科普|展示|演示|观众|汇报|答辩/i.test(question)) {
+    return `30 秒演示话术：这套装置用钻石里的 NV 色心做量子传感。绿光把自旋初始化并读出来，微波扫描它的共振频率。当地磁场存在时，量子能级会发生很小的塞曼劈裂，所以 ODMR 谱线会移动。软件从几条谱线反推出磁场矢量，再把水平分量画成指南针。它和手机指南针测的是同一个地磁场，只是一个用经典芯片，一个用钻石量子能级。`;
+  }
   if (/ODMR|无峰|信噪比|调参/i.test(question)) {
     return `ODMR 无峰建议按顺序排查：1. 频率范围是否覆盖 2.87 GHz 附近及偏置场引起的偏移；2. 微波输出、开关和天线连接是否正常；3. 激光对焦、相机曝光和荧光强度是否稳定；4. 平均次数、积分时间和拟合窗口是否合理；5. 保存参数快照，便于复现实验。`;
   }
